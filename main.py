@@ -1,12 +1,51 @@
 import argparse
 import json
 import os
+import sys
 from typing import Any, Dict, List, Optional, Union
 
 from catalog.scan import scan_codebase
+from environment.verify import check_environment_variables
+from catalog.catalog import add_tags_to_present_vars, filter_vars_by_tag, load_catalog, save_catalog
+
+VERIFY_EPILOG = """
+Sample output:
+  [1/3] DATABASE_URL
+    Tags:          api, worker
+    Used in:       database, models
+    Has default:   False
+    Status:        ✓ SET
+    Referenced in:
+      • database/connection.py:15
+      • models/base.py:42
+  --------------------
+  [2/3] DEBUG
+    Tags:          api
+    Used in:       config
+    Has default:   True
+    Default value: False
+    Status:        ⚠ WARNING - Not set, using default: False
+  --------------------
+  [3/3] API_SECRET
+    Tags:          api
+    Used in:       auth
+    Has default:   False
+    Status:        ✗ ERROR - Required variable not set
+  --------------------
+
+  SUMMARY:
+    Total variables checked: 3
+    Variables present:       1
+    Missing with default:    1
+    Missing without default: 1
+
+  ERROR: 1 required environment variables are missing
+"""
+
 
 def create_env_var_catalogue(output_file: str = "env_var_catalog.json",
-                             exclude_dirs: Optional[List[str]]=None, exclude_patterns: Optional[List[str]]=None):
+                             exclude_dirs: Optional[List[str]]=None, exclude_patterns: Optional[List[str]]=None,
+                             no_auto_tag:bool=False):
     """Create an initial catalog
 
     Generate and save the catalog.
@@ -14,12 +53,13 @@ def create_env_var_catalogue(output_file: str = "env_var_catalog.json",
     :param output_file: path to the file where the json marshaled catalog should be stored
     :param exclude_dirs: these directories will be ignored.
     :param exclude_patterns: paths will be ignored if these patterns are in them
+    :param no_auto_tag: do not detect tags automatically
     """
 
     base_dir = "."
 
     print("Scanning codebase for os.environ.get or os.getenv calls...")
-    env_var_catalog, total_vars_found = scan_codebase(base_dir, exclude_dirs, exclude_patterns)
+    env_var_catalog, total_vars_found = scan_codebase(base_dir, exclude_dirs, exclude_patterns, no_auto_tag)
 
     # Convert to list for the final JSON structure
     catalog_list = list(env_var_catalog.values())
@@ -34,13 +74,15 @@ def create_env_var_catalogue(output_file: str = "env_var_catalog.json",
 
 
 def update_env_var_catalogue(output_file: str = "env_var_catalog.json",
-                             exclude_dirs: Optional[List[str]]=None, exclude_patterns: Optional[List[str]]=None):
+                             exclude_dirs: Optional[List[str]]=None, exclude_patterns: Optional[List[str]]=None,
+                             no_auto_tag: bool=False):
     """Update an existing environment variable catalog
 
     Add new variables if found or update attributes, deletion is not implemented.
     :param output_file: file where the existing catalog is stored.
     :param exclude_dirs: these directories will be ignored.
     :param exclude_patterns: paths will be ignored if these patterns are in them
+    :param no_auto_tag: do not detect tags automatically
     """
     base_dir = "."
 
@@ -60,7 +102,7 @@ def update_env_var_catalogue(output_file: str = "env_var_catalog.json",
 
     # Scan the codebase for current state
     print("Scanning codebase for os.environ.get calls...")
-    new_catalog_dict, total_vars_found = scan_codebase(base_dir, exclude_dirs, exclude_patterns)
+    new_catalog_dict, total_vars_found = scan_codebase(base_dir, exclude_dirs, exclude_patterns, no_auto_tag)
 
     # Update existing entries and add new ones
     updated_count = 0
@@ -140,7 +182,7 @@ def print_structured(vars: List[Dict[str,Union[str,int,List[Dict[str,Union[str,i
 
 def check_env_vars(output_file: str = "env_var_catalog.json",
                    exclude_dirs: Optional[List[str]]=None, exclude_patterns: Optional[List[str]]=None,
-                   structured_output: bool = False):
+                   structured_output: bool = False, no_auto_tag: bool=False):
     """
     Check for environment variables in the code that are not in the catalog
     """
@@ -168,7 +210,7 @@ def check_env_vars(output_file: str = "env_var_catalog.json",
 
     # Scan the codebase for current state
     maybe_print("Scanning codebase for os.environ.get calls...")
-    current_vars_dict, total_vars_found = scan_codebase(base_dir, exclude_dirs, exclude_patterns)
+    current_vars_dict, total_vars_found = scan_codebase(base_dir, exclude_dirs, exclude_patterns, no_auto_tag)
 
     # Find missing variables
     missing_vars:List[Dict[str,Union[str,int,List[Dict[str,Union[str,int]]],Dict[str,Union[str,int]]]]] = []
@@ -198,7 +240,7 @@ def main():
         parser.add_argument(
             "--exclude-dir",
             action="append",
-            default=[".venv", ".venv-py3.8", "__pycache__", ".git"],
+            default=[".venv", "__pycache__", ".git"],
             help="Directory to exclude (can be used multiple times)"
         )
         parser.add_argument(
@@ -212,6 +254,7 @@ def main():
     create_parser.add_argument(
         "-o", "--output", default="env_var_catalog.json", help="Output file name (default: env_var_catalog.json)"
     )
+    create_parser.add_argument("--no-auto-tag", action="store_true", help="do not infer tags from base folders")
     add_common_exclude_args(create_parser)
 
 
@@ -235,12 +278,41 @@ def main():
     check_parser.add_argument(
             "-s",
             "--structured-output",
-            default=False,
-            type=bool,
+            action="store_true",
             help="return json in stdout with the findings"
     )
     add_common_exclude_args(check_parser)
 
+    verify_parser = subparsers.add_parser("verify", description="Verify that all variables for a given tag from the catalog are declared",
+                                          formatter_class=argparse.RawDescriptionHelpFormatter,
+                                          epilog=VERIFY_EPILOG)
+    verify_parser.add_argument(
+        "-c",
+        "--catalog",
+        default="env_var_catalog.json",
+        help="Catalog file to check against (default: env_var_catalog.json)",
+    )
+    verify_parser.add_argument(
+        "-t", "--tag", action="append", default=[], help="Service name to check (can be specified multiple times)"
+    )
+    verify_parser.add_argument(
+        "--warning-as-error", action="store_true", help="Treat missing variables with defaults as errors"
+    )
+    verify_parser.add_argument("--help-examples", action="store_true", help="Show usage examples and sample output")
+
+    tags_from_env_parser = subparsers.add_parser("tags_from_env", description="Adds the passed tags the vars that are present in the catalog and the current env.")
+    tags_from_env_parser.add_argument(
+        "-t", "--tag", action="append", default=[], help="Service name to check (can be specified multiple times)"
+    )
+    tags_from_env_parser.add_argument(
+        "-c",
+        "--catalog",
+        default="env_var_catalog.json",
+        help="Catalog file to check against (default: env_var_catalog.json)",
+    )
+    tags_from_env_parser.add_argument(
+        "-o", "--output", default="", help="Catalog file to update (default: env_var_catalog.json)"
+    )
 
     args = parser.parse_args()
 
@@ -248,13 +320,15 @@ def main():
         create_env_var_catalogue(
             output_file=args.output,
             exclude_dirs=args.exclude_dir,
-            exclude_patterns=args.exclude_pattern
+            exclude_patterns=args.exclude_pattern,
+                no_auto_tag=args.no_auto_tag,
         )
     elif args.command == "update":
         update_env_var_catalogue(
             output_file=args.output,
             exclude_dirs=args.exclude_dir,
-            exclude_patterns=args.exclude_pattern
+            exclude_patterns=args.exclude_pattern,
+                no_auto_tag=args.no_auto_tag,
         )
     elif args.command == "check":
         check_env_vars(
@@ -262,7 +336,26 @@ def main():
             exclude_dirs=args.exclude_dir,
             exclude_patterns=args.exclude_pattern,
             structured_output=args.structured_output,
+            no_auto_tag=args.no_auto_tag,
         )
+    elif args.command == "verify":
+        catalog = load_catalog(args.catalog)
+        print(f"Loaded catalog with {len(catalog)} environment variables")
+        if args.tag:
+            tags = args.tag
+            filtered_vars = filter_vars_by_tag(catalog, tags)
+            print(f"Filtered to {len(filtered_vars)} variables used in service(s): {', '.join(tags)}")
+        else:
+            filtered_vars = catalog
+            print("No tags filter specified, checking all variables in catalog")
+        all_passed = check_environment_variables(catalog_vars=filtered_vars,warning_as_error=args.warning_as_error)
+        sys.exit(0 if all_passed else 1)
+    elif args.command == "tags_from_env":
+        catalog = load_catalog(args.catalog)
+        print(f"Loaded catalog with {len(catalog)} environment variables")
+        catalog = add_tags_to_present_vars(catalog, args.tag)
+        output_file = args.output if args.output else args.catalog
+        save_catalog(output_file)
     else:
         parser.print_help()
 

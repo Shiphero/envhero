@@ -29,17 +29,234 @@ https://github.com/femitubosun/EnvGuardian
 * Create and update an environment variables catalog
 * Perform checks of variables in code and missing from catalog.
 * Scan environment and issue report of missing environment variables
+* Auto tag from existing environment
 * Invoke as a function pre-execution of entrypoint and fail early if variables are missing
 
 ## Usage
 
-### As a library
+# EnvHero Usage Documentation
 
-#### Scanning
-#### Guarding
+## As a Library
 
-### As a tool
+### Scanning
 
-#### Scanning
-#### Checking catalog
-#### Reporting on environment
+```python
+from envhero import scan_codebase, print_structured
+
+# Scan for environment variables in your codebase
+vars_dict, total_found = scan_codebase(
+    base_dir=".", 
+    exclude_dirs=[".venv", "__pycache__", ".git"], 
+    exclude_patterns=["*.pyc"],
+    no_auto_tag=False
+)
+
+# Print findings in structured format
+print_structured(vars_dict.values())
+```
+
+### Guarding
+
+```python
+from envhero import load_catalog, filter_vars_by_tag, must_pass_check
+from envhero import RequiredVariableMissingError, DefaultUsedAsErrorError
+
+try:
+    # Load your environment variable catalog
+    catalog = load_catalog("env_var_catalog.json")
+    
+    # Filter variables by service tags if needed
+    service_vars = filter_vars_by_tag(catalog, ["api", "worker"])
+    
+    # Check required environment variables before starting application
+    must_pass_check(service_vars, warning_as_error=True)
+    
+    # If we get here, all required environment variables are set
+    start_application()
+    
+except RequiredVariableMissingError as e:
+    print(f"ERROR: Missing required environment variable: {e.var_name}")
+    sys.exit(1)
+except DefaultUsedAsErrorError as e:
+    print(f"ERROR: Using default value for {e.var_name} ({e.default_value}) but warnings are treated as errors")
+    sys.exit(1)
+```
+
+## As a Tool
+
+### Creating a Catalog
+
+```bash
+envhero create -o env_var_catalog.json --exclude-dir tests --exclude-dir .venv
+```
+
+Output:
+```
+Scanning codebase for os.environ.get calls...
+Found 15 environment variable usages in 7 files
+Successfully saved catalog with 15 variables to 'env_var_catalog.json'
+```
+
+### Updating an Existing Catalog
+
+```bash
+envhero update -o env_var_catalog.json
+```
+
+Output:
+```
+Loaded catalog with 15 variables
+Scanning codebase for os.environ.get calls...
+Found 2 new environment variable usages
+Updated catalog now contains 17 variables
+```
+
+### Checking for Uncatalogued Variables
+
+```bash
+envhero check -c env_var_catalog.json
+```
+
+Output:
+```
+Loaded catalog with 17 variables
+Scanning codebase for os.environ.get calls...
+WARNING: Found 2 environment variables in code that are not in the catalog:
+- API_TIMEOUT (default: 30) in api/client.py:45, api/utils.py:12 and 1 more
+- DEBUG_MODE (default: False) in core/settings.py:23
+```
+
+With structured output:
+```bash
+envhero check -c env_var_catalog.json --structured-output
+```
+
+Output:
+```json
+[
+  {
+    "name": "API_TIMEOUT",
+    "default_value": 30,
+    "has_default": true,
+    "locations": [
+      {"file": "api/client.py", "line": 45},
+      {"file": "api/utils.py", "line": 12},
+      {"file": "services/api.py", "line": 78}
+    ]
+  },
+  {
+    "name": "DEBUG_MODE",
+    "default_value": false,
+    "has_default": true,
+    "locations": [
+      {"file": "core/settings.py", "line": 23}
+    ]
+  }
+]
+```
+
+### Verifying Environment Variables
+
+```bash
+envhero verify -c env_var_catalog.json -t api -t worker
+```
+
+Output:
+```
+Sample output:
+  [1/3] DATABASE_URL
+    Tags:          api, worker
+    Used in:       database, models
+    Has default:   False
+    Status:        ✓ SET
+    Referenced in:
+      • database/connection.py:15
+      • models/base.py:42
+  --------------------
+  [2/3] DEBUG
+    Tags:          api
+    Used in:       config
+    Has default:   True
+    Default value: False
+    Status:        ⚠ WARNING - Not set, using default: False
+  --------------------
+  [3/3] API_SECRET
+    Tags:          api
+    Used in:       auth
+    Has default:   False
+    Status:        ✗ ERROR - Required variable not set
+  --------------------
+
+  SUMMARY:
+    Total variables checked: 3
+    Variables present:       1
+    Missing with default:    1
+    Missing without default: 1
+
+  ERROR: 1 required environment variables are missing
+```
+
+With strict validation:
+```bash
+envhero verify -c env_var_catalog.json -t api --warning-as-error
+```
+
+Output:
+```
+Sample output:
+  [1/3] DATABASE_URL
+    Tags:          api, worker
+    Used in:       database, models
+    Has default:   False
+    Status:        ✓ SET
+    Referenced in:
+      • database/connection.py:15
+      • models/base.py:42
+  --------------------
+  [2/3] DEBUG
+    Tags:          api
+    Used in:       config
+    Has default:   True
+    Default value: False
+    Status:        ⚠ WARNING - Not set, using default: False
+  --------------------
+  [3/3] API_SECRET
+    Tags:          api
+    Used in:       auth
+    Has default:   False
+    Status:        ✗ ERROR - Required variable not set
+  --------------------
+
+  SUMMARY:
+    Total variables checked: 3
+    Variables present:       1
+    Missing with default:    1
+    Missing without default: 1
+
+  ERROR: 2 required environment variables are missing
+```
+
+### Adding Tags to Variables from Current Environment
+
+```bash
+envhero tags_from_env -c env_var_catalog.json -t production -t high-memory
+```
+
+Output:
+```
+Loaded catalog with 17 environment variables
+Added tags to 12 variables present in environment
+Successfully saved catalog with 17 variables to 'env_var_catalog.json'
+```
+
+With custom output:
+```bash
+envhero tags_from_env -c env_var_catalog.json -t staging -o updated_catalog.json
+```
+
+Output:
+```
+Loaded catalog with 17 environment variables
+Added tags to 12 variables present in environment
+Successfully saved catalog with 17 variables to 'updated_catalog.json'
+```

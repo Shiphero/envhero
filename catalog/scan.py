@@ -50,12 +50,13 @@ def find_package_name(file_path: Path) -> str:
 
     return "unknown_package"
 
-def scan_codebase(base_dir: str, exclude_dirs: List[str], exclude_patterns: List[str]) -> Tuple[Dict[str,Dict[str,Union[str,Set,List]]], int]:
+def scan_codebase(base_dir: str, exclude_dirs: List[str], exclude_patterns: List[str], no_auto_tag: bool) -> Tuple[Dict[str,Dict[str,Union[str,Set,List]]], int]:
     """Scan Python files for os.environ.get calls and catalog them
 
     :param base_dir: path where to start the recursive scan
     :param exclude_dirs: directories to exclude
-    :paran exclude_patterns: if the directory contains these, ignore.
+    :param exclude_patterns: if the directory contains these, ignore.
+    :param no_auto_tag: do not create tags from packages
     :return: dict containing the full catalog and number of total found variable uses
     """
     env_var_catalog: Dict[str,Dict[str,Union[str,Set,List]]] = {}
@@ -103,7 +104,7 @@ def scan_codebase(base_dir: str, exclude_dirs: List[str], exclude_patterns: List
                             "has_default": var_info["has_default"],
                             "default_value": var_info["default_value"],
                             "packages": set(),
-                            "tags": {base_tag},
+                            "tags": {base_tag} if not no_auto_tag else None,
                             "locations": [],
                             "inferred_type": inferred_type if inferred_type and inferred_type != UNKNOWN else ""
                         }
