@@ -4,8 +4,10 @@ from typing import Any, Dict, List
 
 SEPARATOR = "-" * 80
 
-def print_var_status_formatted(as_error: bool, as_warning:bool,is_present:bool, idx:int,
-                               catalog_len:int, var:Dict[str,Any]):
+
+def print_var_status_formatted(
+    as_error: bool, as_warning: bool, is_present: bool, idx: int, catalog_len: int, var: Dict[str, Any]
+):
     var_name = var["name"]
     has_default = var.get("has_default", False)
     default_value = var.get("default_value")
@@ -19,7 +21,7 @@ def print_var_status_formatted(as_error: bool, as_warning:bool,is_present:bool, 
         print(f"  Default value: {default_value}")
     if is_present:
         print("  Status:        ✓ SET")
-    elif as_error: # error first, something can be an error and a warning given the right flag combo
+    elif as_error:  # error first, something can be an error and a warning given the right flag combo
         print("  Status:        ✗ ERROR - Required variable not set")
     elif as_warning:
         print(f"  Status:        ⚠ WARNING - Not set, using default: {default_value}")
@@ -58,6 +60,7 @@ def check_individual_variable(idx: int, var: Dict, catalog_len: int, warning_as_
 
     return is_error, is_warning
 
+
 def check_environment_variables(catalog_vars: List[Dict[str, Any]], warning_as_error: bool) -> bool:
     """Check if environment variables are set.
 
@@ -95,22 +98,31 @@ def check_environment_variables(catalog_vars: List[Dict[str, Any]], warning_as_e
 
     return all_passed
 
+
 class EnvironmentVariableError(Exception):
     """Base exception for environment variable errors."""
+
     pass
+
 
 class RequiredVariableMissingError(EnvironmentVariableError):
     """Exception raised when a required environment variable is missing."""
+
     def __init__(self, var_name):
         self.var_name = var_name
         super().__init__(f"Required environment variable '{var_name}' is missing")
 
+
 class DefaultUsedAsError(EnvironmentVariableError):
     """Exception raised when a variable with default is missing but warnings are treated as errors."""
+
     def __init__(self, var_name, default_value):
         self.var_name = var_name
         self.default_value = default_value
-        super().__init__(f"Environment variable '{var_name}' is missing and using default '{default_value}', but warnings are treated as errors")
+        super().__init__(
+            f"Environment variable '{var_name}' is missing and using default '{default_value}', but warnings are treated as errors"
+        )
+
 
 def must_pass_check(catalog_vars: List[Dict[str, Any]], warning_as_error: bool) -> bool:
     """pass all checks or raise an error
@@ -122,7 +134,7 @@ def must_pass_check(catalog_vars: List[Dict[str, Any]], warning_as_error: bool) 
     :param warning_as_error: fail even if the unset variables have a default value
     :return: warnings were found (only if not in mode warning_as_error)
     """
-    warning_found =False
+    warning_found = False
     for idx, var in enumerate(catalog_vars, 1):
         error, warning = check_individual_variable(idx, var, len(catalog_vars), warning_as_error)
         warning_found = warning if warning else warning_found

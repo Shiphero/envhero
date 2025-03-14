@@ -17,34 +17,31 @@ class EnvVarVisitor(ast.NodeVisitor):
         is_os_environ_get = (
             # Are we calling a method
             isinstance(node.func, ast.Attribute)
-
             # is the method on another object (os.environ)
             and isinstance(node.func.value, ast.Attribute)
             and node.func.value.attr == "environ"
-
             # is the base object a named variable? (os)
             and isinstance(node.func.value.value, ast.Name)
             and node.func.value.value.id == "os"
-
             # is this a call to the get method with one arg that is a constant (string)
             # we do NOT support os.environ.get(variable)
             and node.func.attr == "get"
             and len(node.args) > 0
-            and isinstance(node.args[0], ast.Constant))
+            and isinstance(node.args[0], ast.Constant)
+        )
 
         is_os_getenv = (
             # Are we calling a method
             isinstance(node.func, ast.Attribute)
-
             # is the method on a named variable? (os)
             and isinstance(node.func.value, ast.Name)
             and node.func.value.id == "os"
-
             # is this a call to getenv method with one arg that is a contant?
             # we do NOT support os.getenv(variable)
             and node.func.attr == "getenv"
             and len(node.args) > 0
-            and isinstance(node.args[0], ast.Constant))
+            and isinstance(node.args[0], ast.Constant)
+        )
         return is_os_getenv or is_os_environ_get
 
     @staticmethod
@@ -99,11 +96,11 @@ class EnvVarVisitor(ast.NodeVisitor):
                     nferred_type = type(default_value).__name__
 
             # Try to infer type from assignment context
-            parent = getattr(self, 'current_parent', None)
+            parent = getattr(self, "current_parent", None)
             if not inferred_type and isinstance(parent, ast.Assign):
                 # Check if the target has type annotations
                 target = parent.targets[0]
-                if isinstance(target, ast.Name) and hasattr(target, 'annotation') and target.annotation:
+                if isinstance(target, ast.Name) and hasattr(target, "annotation") and target.annotation:
                     if isinstance(target.annotation, ast.Name):
                         inferred_type = target.annotation.id
                     elif isinstance(target.annotation, ast.Subscript):

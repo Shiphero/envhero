@@ -29,6 +29,7 @@ def filter_vars_by_tag(catalog: List[Dict[str, Any]], tags: List[str]) -> List[D
 
     return filtered_vars
 
+
 def save_catalog(catalog: List[Dict[str, Any]], output_path: str) -> None:
     """
     Save the environment variable catalog to a JSON file.
@@ -37,11 +38,12 @@ def save_catalog(catalog: List[Dict[str, Any]], output_path: str) -> None:
     :param output_path: Path where to save the catalog
     """
     try:
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(catalog, f, indent=2, sort_keys=True)
         print(f"Successfully saved catalog with {len(catalog)} variables to '{output_path}'")
     except IOError as e:
         sys.exit(f"ERROR: Failed to write catalog to '{output_path}': {str(e)}")
+
 
 def add_tags_to_present_vars(catalog: List[Dict[str, Any]], tags: List[str]) -> List[Dict[str, Any]]:
     """

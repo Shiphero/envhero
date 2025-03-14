@@ -43,9 +43,12 @@ Sample output:
 """
 
 
-def create_env_var_catalogue(output_file: str = "env_var_catalog.json",
-                             exclude_dirs: Optional[List[str]]=None, exclude_patterns: Optional[List[str]]=None,
-                             no_auto_tag:bool=False):
+def create_env_var_catalogue(
+    output_file: str = "env_var_catalog.json",
+    exclude_dirs: Optional[List[str]] = None,
+    exclude_patterns: Optional[List[str]] = None,
+    no_auto_tag: bool = False,
+):
     """Create an initial catalog
 
     Generate and save the catalog.
@@ -61,21 +64,21 @@ def create_env_var_catalogue(output_file: str = "env_var_catalog.json",
     print("Scanning codebase for os.environ.get or os.getenv calls...")
     env_var_catalog, total_vars_found = scan_codebase(base_dir, exclude_dirs, exclude_patterns, no_auto_tag)
 
-    # Convert to list for the final JSON structure
-    catalog_list = list(env_var_catalog.values())
-
     # Write to JSON file
     with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(catalog_list, f, indent=2)
+        json.dump(env_var_catalog, f, indent=2)
 
-    print(f"Found {len(catalog_list)} unique environment variables")
+    print(f"Found {len(env_var_catalog)} unique environment variables")
     print(f"Found {total_vars_found} total environment variable references")
     print(f"Catalog written to {output_file}")
 
 
-def update_env_var_catalogue(output_file: str = "env_var_catalog.json",
-                             exclude_dirs: Optional[List[str]]=None, exclude_patterns: Optional[List[str]]=None,
-                             no_auto_tag: bool=False):
+def update_env_var_catalogue(
+    output_file: str = "env_var_catalog.json",
+    exclude_dirs: Optional[List[str]] = None,
+    exclude_patterns: Optional[List[str]] = None,
+    no_auto_tag: bool = False,
+):
     """Update an existing environment variable catalog
 
     Add new variables if found or update attributes, deletion is not implemented.
@@ -104,7 +107,7 @@ def update_env_var_catalogue(output_file: str = "env_var_catalog.json",
     added_count = 0
 
     for new_var in new_catalog_dict:
-        key = f"{new_var['name']}_{new_var.get('default_value','')}"
+        key = f"{new_var['name']}_{new_var.get('default_value', '')}"
         added, updated = process_individual_var(existing_catalog, existing_vars, key, new_var)
         added_count += added
         updated_count += updated
@@ -136,7 +139,9 @@ def process_individual_var(existing_catalog, existing_vars, key, new_var):
         existing_var = existing_vars[key]
 
         # Add new locations
-        existing_locations = {(loc["file"], loc["line"]) for loc in existing_var["locations"]} if 'locations' in existing_var else {}
+        existing_locations = (
+            {(loc["file"], loc["line"]) for loc in existing_var["locations"]} if "locations" in existing_var else {}
+        )
         new_locations = existing_var.get("locations", [])
         for loc in new_var["locations"]:
             loc_key = (loc["file"], loc["line"])
@@ -166,23 +171,30 @@ def process_individual_var(existing_catalog, existing_vars, key, new_var):
         added_count += 1
     return added_count, updated_count
 
-def print_structured(env_vars: List[Dict[str,Union[str,int,List[Dict[str,Union[str,int]]],Dict[str,Union[str,int]]]]]):
+
+def print_structured(
+    env_vars: List[Dict[str, Union[str, int, List[Dict[str, Union[str, int]]], Dict[str, Union[str, int]]]]],
+):
     """output json with the found discrepancies in vars"""
-    output: Dict[str,Any] = {}
+    output: Dict[str, Any] = {}
     for var in env_vars:
         v_name = var["name"]
         output[v_name] = {}
-        if default_value := var['default_value']:
+        if default_value := var["default_value"]:
             output[v_name]["default_value"] = default_value
-        v_locations:List[Dict[str, Union[str,int]]] = var.get("locations", [])
-        if locations:=[{"file":loc["file"], "line":loc["line"]} for loc in v_locations]:
+        v_locations: List[Dict[str, Union[str, int]]] = var.get("locations", [])
+        if locations := [{"file": loc["file"], "line": loc["line"]} for loc in v_locations]:
             output[v_name]["locations"] = locations
     print(json.dumps(output))
 
 
-def check_env_vars(output_file: str = "env_var_catalog.json",
-                   exclude_dirs: Optional[List[str]]=None, exclude_patterns: Optional[List[str]]=None,
-                   structured_output: bool = False, no_auto_tag: bool=False):
+def check_env_vars(
+    output_file: str = "env_var_catalog.json",
+    exclude_dirs: Optional[List[str]] = None,
+    exclude_patterns: Optional[List[str]] = None,
+    structured_output: bool = False,
+    no_auto_tag: bool = False,
+):
     """
     Check for environment variables in the code that are not in the catalog
     """
@@ -192,6 +204,7 @@ def check_env_vars(output_file: str = "env_var_catalog.json",
         if structured_output:
             return
         print(str)
+
     # Load existing catalog if it exists
     if not os.path.exists(output_file):
         print(f"Catalog file {output_file} not found")
@@ -210,18 +223,19 @@ def check_env_vars(output_file: str = "env_var_catalog.json",
 
     # Scan the codebase for current state
     maybe_print("Scanning codebase for os.environ.get calls...")
-    current_vars_dict, total_vars_found = scan_codebase(base_dir, exclude_dirs, exclude_patterns, no_auto_tag)
+    current_vars_list, total_vars_found = scan_codebase(base_dir, exclude_dirs, exclude_patterns, no_auto_tag)
 
     # Find missing variables
-    missing_vars:List[Dict[str,Union[str,int,List[Dict[str,Union[str,int]]],Dict[str,Union[str,int]]]]] = []
-    for key, var_info in current_vars_dict.items():
+    missing_vars: List[Dict[str, Union[str, int, List[Dict[str, Union[str, int]]], Dict[str, Union[str, int]]]]] = []
+    for var_info in current_vars_list:
+        key = f"{var_info['name']}_{var_info['default_value']}"
         if key not in existing_vars:
             missing_vars.append(var_info)
 
     if missing_vars:
         if structured_output:
             print_structured(missing_vars)
-            return # TODO: Maybe Exit(1)?
+            return  # TODO: Maybe Exit(1)?
         maybe_print(f"WARNING: Found {len(missing_vars)} environment variables in code that are not in the catalog:")
         for var in missing_vars:
             locations = ", ".join([f"{loc['file']}:{loc['line']}" for loc in var["locations"][:3]])
@@ -241,15 +255,13 @@ def main():
             "--exclude-dir",
             action="append",
             default=[".venv", "__pycache__", ".git"],
-            help="Directory to exclude (can be used multiple times)"
+            help="Directory to exclude (can be used multiple times)",
         )
         common_parser.add_argument(
-            "--exclude-pattern",
-            action="append",
-            default=[],
-            help="Pattern to exclude (can be used multiple times)"
+            "--exclude-pattern", action="append", default=[], help="Pattern to exclude (can be used multiple times)"
         )
         common_parser.add_argument("--no-auto-tag", action="store_true", help="do not infer tags from base folders")
+
     # Create command
     create_parser = subparsers.add_parser("create", help="Create a new catalog")
     create_parser.add_argument(
@@ -257,15 +269,12 @@ def main():
     )
     add_common_exclude_args(create_parser)
 
-
-
     # Update command
     update_parser = subparsers.add_parser("update", help="Update an existing catalog")
     update_parser.add_argument(
         "-o", "--output", default="env_var_catalog.json", help="Catalog file to update (default: env_var_catalog.json)"
     )
     add_common_exclude_args(update_parser)
-
 
     # Check command
     check_parser = subparsers.add_parser("check", help="Check for uncatalogued variables")
@@ -276,16 +285,16 @@ def main():
         help="Catalog file to check against (default: env_var_catalog.json)",
     )
     check_parser.add_argument(
-            "-s",
-            "--structured-output",
-            action="store_true",
-            help="return json in stdout with the findings"
+        "-s", "--structured-output", action="store_true", help="return json in stdout with the findings"
     )
     add_common_exclude_args(check_parser)
 
-    verify_parser = subparsers.add_parser("verify", description="Verify that all variables for a given tag from the catalog are declared",
-                                          formatter_class=argparse.RawDescriptionHelpFormatter,
-                                          epilog=VERIFY_EPILOG)
+    verify_parser = subparsers.add_parser(
+        "verify",
+        description="Verify that all variables for a given tag from the catalog are declared",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=VERIFY_EPILOG,
+    )
     verify_parser.add_argument(
         "-c",
         "--catalog",
@@ -300,7 +309,10 @@ def main():
     )
     verify_parser.add_argument("--help-examples", action="store_true", help="Show usage examples and sample output")
 
-    tags_from_env_parser = subparsers.add_parser("tags_from_env", description="Adds the passed tags the vars that are present in the catalog and the current env.")
+    tags_from_env_parser = subparsers.add_parser(
+        "tags_from_env",
+        description="Adds the passed tags the vars that are present in the catalog and the current env.",
+    )
     tags_from_env_parser.add_argument(
         "-t", "--tag", action="append", default=[], help="Service name to check (can be specified multiple times)"
     )
@@ -321,14 +333,14 @@ def main():
             output_file=args.output,
             exclude_dirs=args.exclude_dir,
             exclude_patterns=args.exclude_pattern,
-                no_auto_tag=args.no_auto_tag,
+            no_auto_tag=args.no_auto_tag,
         )
     elif args.command == "update":
         update_env_var_catalogue(
             output_file=args.output,
             exclude_dirs=args.exclude_dir,
             exclude_patterns=args.exclude_pattern,
-                no_auto_tag=args.no_auto_tag,
+            no_auto_tag=args.no_auto_tag,
         )
     elif args.command == "check":
         check_env_vars(
@@ -348,7 +360,7 @@ def main():
         else:
             filtered_vars = catalog
             print("No tags filter specified, checking all variables in catalog")
-        all_passed = check_environment_variables(catalog_vars=filtered_vars,warning_as_error=args.warning_as_error)
+        all_passed = check_environment_variables(catalog_vars=filtered_vars, warning_as_error=args.warning_as_error)
         sys.exit(0 if all_passed else 1)
     elif args.command == "tags_from_env":
         catalog = load_catalog(args.catalog)
@@ -358,4 +370,3 @@ def main():
         save_catalog(output_file)
     else:
         parser.print_help()
-
