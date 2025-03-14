@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-import argparse
 import os
-import sys
 from typing import Any, Dict, List
-
-from catalog.catalog import filter_vars_by_tag, load_catalog
 
 SEPARATOR = "-" * 80
 
-def print_var_status_formatted(as_error: bool, as_warning:bool,is_present:bool, idx:int, catalog_len:int,var:Dict[str:Any]):
+def print_var_status_formatted(as_error: bool, as_warning:bool,is_present:bool, idx:int,
+                               catalog_len:int, var:Dict[str,Any]):
     var_name = var["name"]
     has_default = var.get("has_default", False)
     default_value = var.get("default_value")

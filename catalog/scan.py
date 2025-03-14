@@ -4,8 +4,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Union
 
-from catalog import EnvVarVisitor
-from catalog.visitor import UNKNOWN
+from .visitor import UNKNOWN, EnvVarVisitor
 
 
 def find_base_tag(file_path: Path) -> str:
@@ -50,7 +49,7 @@ def find_package_name(file_path: Path) -> str:
 
     return "unknown_package"
 
-def scan_codebase(base_dir: str, exclude_dirs: List[str], exclude_patterns: List[str], no_auto_tag: bool) -> Tuple[Dict[str,Dict[str,Union[str,Set,List]]], int]:
+def scan_codebase(base_dir: str, exclude_dirs: List[str], exclude_patterns: List[str], no_auto_tag: bool) -> Tuple[List[Dict[str,Union[str,Set,List]]], int]:
     """Scan Python files for os.environ.get calls and catalog them
 
     :param base_dir: path where to start the recursive scan
@@ -59,12 +58,15 @@ def scan_codebase(base_dir: str, exclude_dirs: List[str], exclude_patterns: List
     :param no_auto_tag: do not create tags from packages
     :return: dict containing the full catalog and number of total found variable uses
     """
-    env_var_catalog: Dict[str,Dict[str,Union[str,Set,List]]] = {}
+    env_var_catalog: List[Dict[str,Union[str,Set,List]]] = []
+    env_var_idx: Dict[str,int] = {}
     total_vars_found = 0
 
     for root, dirs, files in os.walk(base_dir):
+        dir_path = Path(root).relative_to(base_dir)
         # remove excluded dirs, this is quite a naive match
-        dirs[:] = [d for d in dirs if d not in exclude_dirs]
+        if str(dir_path) in exclude_dirs:
+            continue
 
         for file in files:
             # bail early if not python
@@ -97,25 +99,27 @@ def scan_codebase(base_dir: str, exclude_dirs: List[str], exclude_patterns: List
                     var_name = var_info["name"]
                     var_key = f"{var_name}_{var_info['default_value']}"
                     inferred_type = var_info["inferred_type"]
-
-                    if var_key not in env_var_catalog:
-                        env_var_catalog[var_key] = {
+                    if var_key not in env_var_idx:
+                        env_var_idx[var_key] = (idx := len(env_var_catalog))
+                        env_var_catalog.append({
                             "name": var_name,
                             "has_default": var_info["has_default"],
                             "default_value": var_info["default_value"],
                             "packages": set(),
-                            "tags": {base_tag} if not no_auto_tag else None,
+                            "tags": {base_tag} if not no_auto_tag else set(),
                             "locations": [],
                             "inferred_type": inferred_type if inferred_type and inferred_type != UNKNOWN else ""
-                        }
+                        })
                     else:
-                        env_var_catalog[var_key]["tags"].add(base_tag)
+                        idx = env_var_idx[var_key]
+                        if not no_auto_tag:
+                            env_var_catalog[idx]["tags"].add(base_tag)
                         # Maybe update inferred type if we have something better
-                        it = env_var_catalog[var_key]["inferred_type"]
-                        env_var_catalog[var_key]["inferred_type"] = inferred_type if inferred_type and inferred_type != UNKNOWN and not it else it
+                        it = env_var_catalog[idx]["inferred_type"]
+                        env_var_catalog[idx]["inferred_type"] = inferred_type if inferred_type and inferred_type != UNKNOWN and not it else it
 
-                    env_var_catalog[var_key]["packages"].add(package_name)
-                    env_var_catalog[var_key]["locations"].append(
+                    env_var_catalog[idx]["packages"].add(package_name)
+                    env_var_catalog[idx]["locations"].append(
                         {"file": str(relative_path), "line": var_info["lineno"]}
                     )
 
@@ -124,7 +128,7 @@ def scan_codebase(base_dir: str, exclude_dirs: List[str], exclude_patterns: List
                 raise e
 
     # Convert sets to lists for JSON serialization
-    for var_info in env_var_catalog.values():
+    for var_info in env_var_catalog:
         var_info["packages"] = list(var_info["packages"])
         var_info["tags"] = list(var_info["tags"])
 
