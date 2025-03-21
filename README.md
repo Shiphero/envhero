@@ -236,10 +236,28 @@ Sample output:
   ERROR: 2 required environment variables are missing
 ```
 
-### Adding Tags to Variables from Current Environment
+### Adding Tags to Variables from An Environment
+
+#### From a shell
 
 ```bash
 envhero tags_from_env -c env_var_catalog.json -t production -t high-memory
+```
+
+#### From an AWS task definition file
+
+```bash
+envhero tags_from_task_definition -c env_var_catalog.json -d task_definition.json -t production -t high-memory
+```
+
+#### From an AWS task definition
+
+```bash
+export AWS_ACCESS_KEY_ID=xxxxxxx
+export AWS_SECRET_ACCESS_KEY=xxxxxxx
+export AWS_SESSION_TOKEN=xxxxxxx
+export AWS_DEFAULT_REGION=xxxxxxx #beware boto3 does not support AWS_REGION
+envhero tags_from_task_definition -c env_var_catalog.json -d task_definition_name -t production -t high-memory
 ```
 
 Output:

@@ -1,7 +1,6 @@
 import json
-import os
 import sys
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 
 
 def load_catalog(catalog_path: str) -> List[Dict[str, Any]]:
@@ -45,12 +44,15 @@ def save_catalog(catalog: List[Dict[str, Any]], output_path: str) -> None:
         sys.exit(f"ERROR: Failed to write catalog to '{output_path}': {str(e)}")
 
 
-def add_tags_to_present_vars(catalog: List[Dict[str, Any]], tags: List[str]) -> List[Dict[str, Any]]:
+def add_tags_to_present_vars(
+    catalog: List[Dict[str, Any]], tags: List[str], environ_exists: Callable[[str], bool]
+) -> List[Dict[str, Any]]:
     """
     Add tags to variables in the catalog that are present in the environment.
 
     :param catalog: The environment variable catalog
     :param tags: List of tags to add to present environment variables
+    :param environ_exists: A function checking existence of a variable from an environ or environ definition.
     :return: The updated catalog
     """
     if not tags:
@@ -58,7 +60,7 @@ def add_tags_to_present_vars(catalog: List[Dict[str, Any]], tags: List[str]) -> 
 
     for var in catalog:
         var_name = var["name"]
-        if var_name in os.environ:
+        if environ_exists(var_name):
             var_tags = var.get("tags", [])
             for tag in tags:
                 if tag not in var_tags:
