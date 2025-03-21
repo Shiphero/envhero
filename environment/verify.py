@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-import os
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 
 SEPARATOR = "-" * 80
 
@@ -39,7 +38,9 @@ def print_var_status_formatted(
                 print(f"    • ... and {len(var.get('locations', [])) - 3} more locations")
 
 
-def check_individual_variable(idx: int, var: Dict, catalog_len: int, warning_as_error: bool):
+def check_individual_variable(
+    idx: int, var: Dict, catalog_len: int, warning_as_error: bool, environ_exists: Callable[[str], bool]
+):
     """Performs the variable sanity checking for the given var
 
     Also prints some extra information if possible
@@ -48,7 +49,7 @@ def check_individual_variable(idx: int, var: Dict, catalog_len: int, warning_as_
     is_warning = False
     var_name = var["name"]
     has_default = var.get("has_default", False)
-    is_present = var_name in os.environ
+    is_present = environ_exists(var_name)
     if is_present:
         return is_error, is_warning
     if has_default:
@@ -61,7 +62,9 @@ def check_individual_variable(idx: int, var: Dict, catalog_len: int, warning_as_
     return is_error, is_warning
 
 
-def check_environment_variables(catalog_vars: List[Dict[str, Any]], warning_as_error: bool) -> bool:
+def check_environment_variables(
+    catalog_vars: List[Dict[str, Any]], warning_as_error: bool, environ_exists: Callable[[str], bool]
+) -> bool:
     """Check if environment variables are set.
 
     Returns True if check passes, False otherwise, human-readable information is printed
@@ -74,7 +77,7 @@ def check_environment_variables(catalog_vars: List[Dict[str, Any]], warning_as_e
     print(SEPARATOR)
 
     for idx, var in enumerate(catalog_vars, 1):
-        error, warning = check_individual_variable(idx, var, len(catalog_vars), warning_as_error)
+        error, warning = check_individual_variable(idx, var, len(catalog_vars), warning_as_error, environ_exists)
         errors += 1 if error else 0
         warnings += 1 if warning else 0
         print_var_status_formatted(error, warning, not error and not warning, idx, len(catalog_vars), var)
@@ -124,7 +127,9 @@ class DefaultUsedAsError(EnvironmentVariableError):
         )
 
 
-def must_pass_check(catalog_vars: List[Dict[str, Any]], warning_as_error: bool) -> bool:
+def must_pass_check(
+    catalog_vars: List[Dict[str, Any]], warning_as_error: bool, environ_exists: Callable[[str], bool]
+) -> bool:
     """pass all checks or raise an error
 
     Intended to be used within services as gating code before starting an execution.
@@ -132,11 +137,12 @@ def must_pass_check(catalog_vars: List[Dict[str, Any]], warning_as_error: bool) 
 
     :param catalog_vars: a loaded catalog, see load_catalog function for this.
     :param warning_as_error: fail even if the unset variables have a default value
+    :param environ_exists: A function checking existence of a variable from an environ or environ definition.
     :return: warnings were found (only if not in mode warning_as_error)
     """
     warning_found = False
     for idx, var in enumerate(catalog_vars, 1):
-        error, warning = check_individual_variable(idx, var, len(catalog_vars), warning_as_error)
+        error, warning = check_individual_variable(idx, var, len(catalog_vars), warning_as_error, environ_exists)
         warning_found = warning if warning else warning_found
         if error and warning:
             raise DefaultUsedAsError(var["name"], var["default_value"])

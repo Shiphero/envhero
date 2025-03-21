@@ -246,18 +246,22 @@ envhero tags_from_env -c env_var_catalog.json -t production -t high-memory
 
 #### From an AWS task definition file
 
+Pass the path to a definition file.
+
 ```bash
-envhero tags_from_task_definition -c env_var_catalog.json -d task_definition.json -t production -t high-memory
+envhero tags_from_env -c env_var_catalog.json -d task_definition.json -t production -t high-memory
 ```
 
 #### From an AWS task definition
+
+Pass the name of a definition.
 
 ```bash
 export AWS_ACCESS_KEY_ID=xxxxxxx
 export AWS_SECRET_ACCESS_KEY=xxxxxxx
 export AWS_SESSION_TOKEN=xxxxxxx
 export AWS_DEFAULT_REGION=xxxxxxx #beware boto3 does not support AWS_REGION
-envhero tags_from_task_definition -c env_var_catalog.json -d task_definition_name -t production -t high-memory
+envhero tags_from_env -c env_var_catalog.json -d task_definition_name -t production -t high-memory
 ```
 
 Output:

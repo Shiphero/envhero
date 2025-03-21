@@ -329,23 +329,10 @@ def main():
         "-o", "--output", default="", help="Catalog file to update (default: env_var_catalog.json)"
     )
 
-    tags_from_task_definition_parser = subparsers.add_parser(
-        name="tags_from_task_definition",
-        description="Adds the passed tags to the vars that are present in the task definition",
-    )
-
-    tags_from_task_definition_parser.add_argument(
-        "-t", "--tag", action="append", default=[], help="Service name to check (can be specified multiple times)"
-    )
-
-    tags_from_task_definition_parser.add_argument(
+    tags_from_env_parser.add_argument(
         "-d",
         "--definition",
         help="A path to a json file definition or the name of a definition, if the file is not found we will try with aws.",
-    )
-
-    tags_from_task_definition_parser.add_argument(
-        "-o", "--output", default="", help="Catalog file to update (default: env_var_catalog.json)"
     )
 
     args = parser.parse_args()
@@ -375,6 +362,12 @@ def main():
     elif args.command == "verify":
         catalog = load_catalog(args.catalog)
         print(f"Loaded catalog with {len(catalog)} environment variables")
+        if args.definition:
+            # if this is not a file then likely we are trying to pull from aws
+            use_aws = not os.path.isfile(args.definition)
+            env_checker = get_task_definition_checker(args.definition, use_aws)
+        else:
+            env_checker = exists_in_env
         if args.tag:
             tags = args.tag
             filtered_vars = filter_vars_by_tag(catalog, tags)
@@ -382,20 +375,19 @@ def main():
         else:
             filtered_vars = catalog
             print("No tags filter specified, checking all variables in catalog")
-        all_passed = check_environment_variables(catalog_vars=filtered_vars, warning_as_error=args.warning_as_error)
+        all_passed = check_environment_variables(
+            catalog_vars=filtered_vars, warning_as_error=args.warning_as_error, environ_exists=env_checker
+        )
         sys.exit(0 if all_passed else 1)
     elif args.command == "tags_from_env":
         catalog = load_catalog(args.catalog)
         print(f"Loaded catalog with {len(catalog)} environment variables")
-        catalog = add_tags_to_present_vars(catalog, args.tag, exists_in_env)
-        output_file = args.output if args.output else args.catalog
-        save_catalog(catalog, output_file)
-    elif args.command == "tags_from_task_definition":
-        catalog = load_catalog(args.catalog)
-        print(f"Loaded catalog with {len(catalog)} environment variables")
-        # if this is not a file then likely we are trying to pull from aws
-        use_aws = not os.path.isfile(args.definition)
-        env_checker = get_task_definition_checker(args.definition, use_aws)
+        if args.definition:
+            # if this is not a file then likely we are trying to pull from aws
+            use_aws = not os.path.isfile(args.definition)
+            env_checker = get_task_definition_checker(args.definition, use_aws)
+        else:
+            env_checker = exists_in_env
         catalog = add_tags_to_present_vars(catalog, args.tag, env_checker)
         output_file = args.output if args.output else args.catalog
         save_catalog(catalog, output_file)

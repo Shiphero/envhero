@@ -2,47 +2,29 @@ import os
 import pytest
 from unittest.mock import patch
 
+from catalog.from_env import exists_in_env
 from environment.verify import (
     must_pass_check,
     EnvironmentVariableError,
     RequiredVariableMissingError,
-    DefaultUsedAsError
+    DefaultUsedAsError,
 )
 
 # Test data - mock environment variables catalog
 SAMPLE_CATALOG = [
-    {
-        "name": "DATABASE_URL",
-        "has_default": False,
-        "default_value": None,
-        "tags": ["db", "api"]
-    },
-    {
-        "name": "API_KEY",
-        "has_default": True,
-        "default_value": "dev-key-123",
-        "tags": ["api", "auth"]
-    },
-    {
-        "name": "DEBUG",
-        "has_default": True,
-        "default_value": "False",
-        "tags": ["__all__"]
-    },
-    {
-        "name": "LOG_LEVEL",
-        "has_default": True,
-        "default_value": "INFO",
-        "tags": []
-    },
+    {"name": "DATABASE_URL", "has_default": False, "default_value": None, "tags": ["db", "api"]},
+    {"name": "API_KEY", "has_default": True, "default_value": "dev-key-123", "tags": ["api", "auth"]},
+    {"name": "DEBUG", "has_default": True, "default_value": "False", "tags": ["__all__"]},
+    {"name": "LOG_LEVEL", "has_default": True, "default_value": "INFO", "tags": []},
 ]
+
 
 class TestMustPassCheck:
     def test_all_required_vars_present(self):
         """Test when all required variables are present in the environment"""
         with patch.dict(os.environ, {"DATABASE_URL": "postgres://user:pass@localhost/db"}):
             # This should not raise any exceptions
-            must_pass_check(SAMPLE_CATALOG, warning_as_error=False)
+            must_pass_check(SAMPLE_CATALOG, warning_as_error=False, environ_exists=exists_in_env)
 
     def test_missing_required_var(self):
         """Test when a required variable is missing"""
@@ -58,38 +40,44 @@ class TestMustPassCheck:
         """Test when default values are used but warnings are not treated as errors"""
         with patch.dict(os.environ, {"DATABASE_URL": "postgres://localhost/db"}):
             # Should not raise exceptions, just use defaults for API_KEY, DEBUG, and LOG_LEVEL
-            must_pass_check(SAMPLE_CATALOG, warning_as_error=False)
+            must_pass_check(SAMPLE_CATALOG, warning_as_error=False, environ_exists=exists_in_env)
 
     def test_default_used_as_error(self):
         """Test when default values are used and warnings are treated as errors"""
         with patch.dict(os.environ, {"DATABASE_URL": "postgres://localhost/db"}):
             with pytest.raises(DefaultUsedAsError) as exc_info:
-                must_pass_check(SAMPLE_CATALOG, warning_as_error=True)
+                must_pass_check(SAMPLE_CATALOG, warning_as_error=True, environ_exists=exists_in_env)
 
             # First default value found (likely API_KEY) should trigger the error
             assert exc_info.value.var_name in ["API_KEY", "DEBUG", "LOG_LEVEL"]
             assert exc_info.value.default_value is not None
-            assert "Environment variable 'API_KEY' is missing and using default 'dev-key-123', but warnings are treated as errors" in str(exc_info.value)
+            assert (
+                "Environment variable 'API_KEY' is missing and using default 'dev-key-123', but warnings are treated as errors"
+                in str(exc_info.value)
+            )
 
     def test_partial_environment(self):
         """Test with partial environment setup"""
-        with patch.dict(os.environ, {
-            "DATABASE_URL": "postgres://localhost/db",
-            "API_KEY": "production-key",
-            # DEBUG and LOG_LEVEL not set
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "DATABASE_URL": "postgres://localhost/db",
+                "API_KEY": "production-key",
+                # DEBUG and LOG_LEVEL not set
+            },
+        ):
             # Should not raise exceptions if warnings not treated as errors
-            must_pass_check(SAMPLE_CATALOG, warning_as_error=False)
+            must_pass_check(SAMPLE_CATALOG, warning_as_error=False, environ_exists=exists_in_env)
 
             # Should raise exception if warnings treated as errors
             with pytest.raises(DefaultUsedAsError):
-                must_pass_check(SAMPLE_CATALOG, warning_as_error=True)
+                must_pass_check(SAMPLE_CATALOG, warning_as_error=True, environ_exists=exists_in_env)
 
     def test_empty_catalog(self):
         """Test with empty catalog"""
         # Should not raise exceptions regardless of environment state
-        must_pass_check([], warning_as_error=True)
-        must_pass_check([], warning_as_error=False)
+        must_pass_check([], warning_as_error=True, environ_exists=exists_in_env)
+        must_pass_check([], warning_as_error=False, environ_exists=exists_in_env)
 
     def test_catalog_without_required_vars(self):
         """Test catalog with only optional variables"""
@@ -97,11 +85,11 @@ class TestMustPassCheck:
 
         with patch.dict(os.environ, {}):
             # Should not raise exceptions if warnings not treated as errors
-            must_pass_check(optional_vars, warning_as_error=False)
+            must_pass_check(optional_vars, warning_as_error=False, environ_exists=exists_in_env)
 
             # Should raise exception if warnings treated as errors
             with pytest.raises(DefaultUsedAsError):
-                must_pass_check(optional_vars, warning_as_error=True)
+                must_pass_check(optional_vars, warning_as_error=True, environ_exists=exists_in_env)
 
     def test_error_inheritance(self):
         """Test the inheritance hierarchy of custom exceptions"""

@@ -2,9 +2,8 @@ import os
 import json
 import pytest
 from unittest.mock import patch, mock_open
-from catalog.catalog import (
-    load_catalog, filter_vars_by_tag, save_catalog, add_tags_to_present_vars
-)
+from catalog.catalog import load_catalog, filter_vars_by_tag, save_catalog, add_tags_to_present_vars
+from catalog.from_env import exists_in_env
 
 # Test data
 SAMPLE_CATALOG = [
@@ -14,6 +13,7 @@ SAMPLE_CATALOG = [
     {"name": "LOG_LEVEL", "has_default": True, "default_value": "INFO", "tags": []},
 ]
 
+
 class TestLoadCatalog:
     def test_load_catalog_successfully(self):
         with patch("builtins.open", mock_open(read_data=json.dumps(SAMPLE_CATALOG))):
@@ -21,16 +21,15 @@ class TestLoadCatalog:
             assert result == SAMPLE_CATALOG
 
     def test_load_catalog_file_not_found(self):
-        with patch("builtins.open", side_effect=FileNotFoundError()), \
-             pytest.raises(SystemExit) as exc_info:
+        with patch("builtins.open", side_effect=FileNotFoundError()), pytest.raises(SystemExit) as exc_info:
             load_catalog("nonexistent.json")
         assert "not found" in str(exc_info.value)
 
     def test_load_catalog_invalid_json(self):
-        with patch("builtins.open", mock_open(read_data="invalid json")), \
-             pytest.raises(SystemExit) as exc_info:
+        with patch("builtins.open", mock_open(read_data="invalid json")), pytest.raises(SystemExit) as exc_info:
             load_catalog("invalid.json")
         assert "invalid JSON" in str(exc_info.value)
+
 
 class TestFilterVarsByTag:
     def test_filter_with_no_tags(self):
@@ -53,32 +52,33 @@ class TestFilterVarsByTag:
         assert len(result) == 1  # Only DEBUG with __all__ tag
         assert result[0]["name"] == "DEBUG"
 
+
 class TestSaveCatalog:
     def test_save_catalog_successfully(self):
-        with patch("builtins.open", mock_open()) as m, \
-             patch("json.dump") as mock_json_dump, \
-             patch("builtins.print") as mock_print:
+        with patch("builtins.open", mock_open()) as m, patch("json.dump") as mock_json_dump, patch(
+            "builtins.print"
+        ) as mock_print:
             save_catalog(SAMPLE_CATALOG, "output.json")
 
-            m.assert_called_once_with("output.json", 'w', encoding='utf-8')
+            m.assert_called_once_with("output.json", "w", encoding="utf-8")
             mock_json_dump.assert_called_once()
             mock_print.assert_called_once_with("Successfully saved catalog with 4 variables to 'output.json'")
 
     def test_save_catalog_io_error(self):
-        with patch("builtins.open", side_effect=IOError("Permission denied")), \
-             pytest.raises(SystemExit) as exc_info:
+        with patch("builtins.open", side_effect=IOError("Permission denied")), pytest.raises(SystemExit) as exc_info:
             save_catalog(SAMPLE_CATALOG, "/invalid/path/output.json")
         assert "Failed to write catalog" in str(exc_info.value)
         assert "Permission denied" in str(exc_info.value)
 
+
 class TestAddTagsToPresentVars:
     def test_add_tags_no_tags_provided(self):
-        result = add_tags_to_present_vars(SAMPLE_CATALOG, [])
+        result = add_tags_to_present_vars(SAMPLE_CATALOG, [], environ_exists=exists_in_env)
         assert result == SAMPLE_CATALOG
 
     @patch.dict(os.environ, {"API_KEY": "test-key", "LOG_LEVEL": "DEBUG"})
     def test_add_tags_to_present_vars(self):
-        result = add_tags_to_present_vars(SAMPLE_CATALOG, ["production"])
+        result = add_tags_to_present_vars(SAMPLE_CATALOG, ["production"], environ_exists=exists_in_env)
 
         # API_KEY should have production tag added
         api_key_var = next(var for var in result if var["name"] == "API_KEY")
@@ -96,7 +96,7 @@ class TestAddTagsToPresentVars:
     def test_add_tags_no_duplicates(self):
         # Add a tag that already exists
         catalog_copy = json.loads(json.dumps(SAMPLE_CATALOG))
-        result = add_tags_to_present_vars(catalog_copy, ["api"])
+        result = add_tags_to_present_vars(catalog_copy, ["api"], environ_exists=exists_in_env)
 
         # API_KEY should have api tag only once
         api_key_var = next(var for var in result if var["name"] == "API_KEY")
@@ -106,5 +106,5 @@ class TestAddTagsToPresentVars:
     def test_add_tags_var_not_in_catalog(self):
         # This tests that the function doesn't throw errors when var in env
         # but not in catalog
-        result = add_tags_to_present_vars(SAMPLE_CATALOG, ["production"])
+        result = add_tags_to_present_vars(SAMPLE_CATALOG, ["production"], environ_exists=exists_in_env)
         assert result == SAMPLE_CATALOG  # No changes to catalog
