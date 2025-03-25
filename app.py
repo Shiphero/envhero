@@ -9,6 +9,7 @@ from catalog.from_env import exists_in_env
 from catalog.scan import scan_codebase
 from environment.verify import check_environment_variables
 from catalog.catalog import add_tags_to_present_vars, filter_vars_by_tag, load_catalog, save_catalog
+from utils.inject_proxy import transform_directory, default_formatter
 
 VERIFY_EPILOG = """
 Sample output:
@@ -335,6 +336,23 @@ def main():
         help="A path to a json file definition or the name of a definition, if the file is not found we will try with aws.",
     )
 
+    # Inject proxy
+    inject_proxy_parser = subparsers.add_parser(
+        "inject_proxy",
+        description="Replace environment variable access with var_proxy.get calls",
+    )
+    inject_proxy_parser.add_argument("directory", nargs="?", default=".", help="Directory to process")
+    inject_proxy_parser.add_argument(
+        "--exclude-dir",
+        action="append",
+        default=[".venv", "__pycache__", ".git"],
+        help="Directory to exclude (can be used multiple times)",
+    )
+    inject_proxy_parser.add_argument(
+        "--exclude-pattern", action="append", default=[], help="Pattern to exclude (can be used multiple times)"
+    )
+    inject_proxy_parser.add_argument("--no-format", action="store_true", help="Skip running formatter on changed files")
+
     args = parser.parse_args()
 
     if args.command == "create":
@@ -391,5 +409,14 @@ def main():
         catalog = add_tags_to_present_vars(catalog, args.tag, env_checker)
         output_file = args.output if args.output else args.catalog
         save_catalog(catalog, output_file)
+    elif args.command == "inject_proxy":
+        formatter = None if args.no_format else default_formatter
+        processed, changed, changed_files = transform_directory(
+            args.directory,
+            exclude_dirs=args.exclude_dir,
+            exclude_patterns=args.exclude_pattern,
+            formatter_callback=formatter,
+        )
+        print(f"Processed {processed} files, changed {changed} files")
     else:
         parser.print_help()
