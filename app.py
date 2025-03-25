@@ -205,7 +205,7 @@ def check_env_vars(
     def maybe_print(txt: str):
         if structured_output:
             return
-        print(str)
+        print(txt)
 
     # Load existing catalog if it exists
     if not os.path.exists(output_file):
@@ -362,7 +362,7 @@ def main():
     elif args.command == "verify":
         catalog = load_catalog(args.catalog)
         print(f"Loaded catalog with {len(catalog)} environment variables")
-        if args.definition:
+        if hasattr(args, "definition") and args.definition:
             # if this is not a file then likely we are trying to pull from aws
             use_aws = not os.path.isfile(args.definition)
             env_checker = get_task_definition_checker(args.definition, use_aws)
