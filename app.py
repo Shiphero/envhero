@@ -205,7 +205,7 @@ def check_env_vars(
     def maybe_print(txt: str):
         if structured_output:
             return
-        print(str)
+        print(txt)
 
     # Load existing catalog if it exists
     if not os.path.exists(output_file):
