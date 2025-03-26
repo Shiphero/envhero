@@ -1,7 +1,7 @@
 import json
 from unittest.mock import patch, mock_open
 
-from app import create_env_var_catalogue, update_env_var_catalogue, check_env_vars, print_structured, main
+from app.app import create_env_var_catalogue, update_env_var_catalogue, check_env_vars, print_structured, main
 
 
 class TestCreateEnvVarCatalogue:

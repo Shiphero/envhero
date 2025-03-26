@@ -62,7 +62,7 @@ def create_env_var_catalogue(
     :param no_auto_tag: do not detect tags automatically
     """
 
-    base_dir = "."
+    base_dir = ".."
 
     print("Scanning codebase for os.environ.get or os.getenv calls...")
     env_var_catalog, total_vars_found = scan_codebase(base_dir, exclude_dirs, exclude_patterns, no_auto_tag)
@@ -90,7 +90,7 @@ def update_env_var_catalogue(
     :param exclude_patterns: paths will be ignored if these patterns are in them
     :param no_auto_tag: do not detect tags automatically
     """
-    base_dir = "."
+    base_dir = ".."
 
     # Load existing catalog if it exists
     existing_catalog = []
@@ -201,7 +201,7 @@ def check_env_vars(
     """
     Check for environment variables in the code that are not in the catalog
     """
-    base_dir = "."
+    base_dir = ".."
 
     def maybe_print(txt: str):
         if structured_output:

@@ -102,7 +102,7 @@ TEST_API_KEY = os.environ.get('TEST_API_KEY', 'fake-key')
 
     def test_scan_codebase_basic(self, mock_file_system, mock_env_var_content):
         with patch("builtins.open", side_effect=mock_env_var_content):
-            with patch("ast.parse") as mock_parse:
+            with patch("ast.parse"):
                 # Configure our visitor behavior for each file
                 visitor_instances = []
 
