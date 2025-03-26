@@ -31,7 +31,7 @@ envhero = "envhero:envhero"
 [tool.ruff]
 line-length = 120
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=8.3.4",
 ]
