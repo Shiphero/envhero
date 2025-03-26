@@ -83,10 +83,16 @@ except DefaultUsedAsErrorError as e:
 ```
 
 ## As a Tool
-For easy use, create an alias. Here is an example for bashrc
+For ease of use, install this in a virtualenv
 
 ```bash
-echo "alias envhero=\"\$(pwd)/src/envhero/__main__.py\"" >> ~/.bashrc && source ~/.bashrc
+pip install envhero
+```
+
+this will create the envhero executable or alternatively allow you to do
+
+```bash
+python -m envhero 
 ```
 
 ### Creating a Catalog
