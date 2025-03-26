@@ -5,7 +5,7 @@ from app.app import create_env_var_catalogue, update_env_var_catalogue, check_en
 
 
 class TestCreateEnvVarCatalogue:
-    @patch("app.scan_codebase")
+    @patch("catalog.scan_codebase")
     @patch("builtins.open", new_callable=mock_open)
     @patch("json.dump")
     def test_create_env_var_catalogue(self, mock_json_dump, mock_file, mock_scan_codebase):
@@ -23,13 +23,13 @@ class TestCreateEnvVarCatalogue:
         # Call the function
         create_env_var_catalogue(
             output_file="catalog.json",
-            exclude_dirs=["venv", "__pycache__"],
+            exclude_dirs=["venv", "__pycache__", ".local", ".venv"],
             exclude_patterns=["*.pyc"],
             no_auto_tag=False,
         )
 
         # Verify scan_codebase was called with the correct arguments
-        mock_scan_codebase.assert_called_once_with(".", ["venv", "__pycache__"], ["*.pyc"], False)
+        mock_scan_codebase.assert_called_once_with(".", ["venv", "__pycache__", ".local", ".venv"], ["*.pyc"], False)
 
         # Verify the file was opened for writing
         mock_file.assert_called_once_with("catalog.json", "w", encoding="utf-8")
@@ -44,8 +44,8 @@ class TestCreateEnvVarCatalogue:
 
 
 class TestUpdateEnvVarCatalogue:
-    @patch("app.scan_codebase")
-    @patch("app.load_catalog")
+    @patch("catalog.scan_codebase")
+    @patch("catalog.load_catalog")
     @patch("builtins.open", new_callable=mock_open)
     @patch("json.dump")
     @patch("os.path.exists")
@@ -100,7 +100,7 @@ class TestUpdateEnvVarCatalogue:
 
 
 class TestCheckEnvVars:
-    @patch("app.scan_codebase")
+    @patch("catalog.scan_codebase")
     @patch("builtins.open")
     @patch("json.load")
     @patch("builtins.print")
@@ -184,9 +184,9 @@ class TestMain:
                 no_auto_tag=False,
             )
 
-    @patch("app.load_catalog")
-    @patch("app.filter_vars_by_tag")
-    @patch("app.check_environment_variables")
+    @patch("catalog.load_catalog")
+    @patch("catalog.filter_vars_by_tag")
+    @patch("environment.check_environment_variables")
     @patch("sys.exit")
     def test_main_verify(self, mock_exit, mock_check_env, mock_filter, mock_load):
         catalog_data = [{"name": "API_VAR", "tags": ["api"]}, {"name": "DB_VAR", "tags": ["db"]}]
@@ -204,8 +204,8 @@ class TestMain:
             )
             mock_exit.assert_called_once_with(0)  # All checks passed
 
-    @patch("app.load_catalog")
-    @patch("app.add_tags_to_present_vars")
+    @patch("catalog.load_catalog")
+    @patch("catalog.add_tags_to_present_vars")
     @patch("catalog.save_catalog")
     def test_main_tags_from_env(self, mock_save, mock_add_tags, mock_load):
         catalog_data = [{"name": "TEST_VAR1", "tags": []}, {"name": "TEST_VAR2", "tags": ["existing"]}]
