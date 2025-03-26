@@ -2,8 +2,8 @@ import os
 import pytest
 from unittest.mock import patch
 
-from catalog.from_env import exists_in_env
-from environment.verify import (
+from envhero.catalog.from_env import exists_in_env
+from envhero.environment.verify import (
     must_pass_check,
     EnvironmentVariableError,
     RequiredVariableMissingError,

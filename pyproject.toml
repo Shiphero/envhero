@@ -2,12 +2,6 @@
 requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.module]
-name = "envhero"
-
-[tool.flit.sdist]
-include = ["app/*.py", "utils/*.py", "environment/*.py", "proxy/*.py", "catalog/*.py"]
-
 [project]
 name = "envhero"
 readme = "README.md"

@@ -3,7 +3,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch, mock_open, MagicMock
 
-from catalog.scan import find_base_tag, find_package_name, scan_codebase
+from envhero.catalog.scan import find_base_tag, find_package_name, scan_codebase
 
 
 class TestFindBaseTag:
@@ -153,7 +153,7 @@ TEST_API_KEY = os.environ.get('TEST_API_KEY', 'fake-key')
                 visitor_instances.append(db_models_visitor)
 
                 # Configure the mock to return our pre-configured visitors
-                with patch("catalog.scan.EnvVarVisitor") as mock_visitor_class:
+                with patch("envhero.catalog.scan.EnvVarVisitor") as mock_visitor_class:
                     mock_visitor_class.side_effect = lambda: visitor_instances.pop(0)
 
                     # Run the scan
@@ -195,7 +195,7 @@ TEST_API_KEY = os.environ.get('TEST_API_KEY', 'fake-key')
 
     def test_scan_codebase_with_auto_tag_disabled(self, mock_file_system, mock_env_var_content):
         with patch("builtins.open", side_effect=mock_env_var_content):
-            with patch("ast.parse"), patch("catalog.scan.EnvVarVisitor") as mock_visitor_class:
+            with patch("ast.parse"), patch("envhero.catalog.scan.EnvVarVisitor") as mock_visitor_class:
                 # Create a mock visitor with a single env var
                 mock_visitor = MagicMock()
                 mock_visitor.env_vars = [
@@ -233,7 +233,7 @@ TEST_API_KEY = os.environ.get('TEST_API_KEY', 'fake-key')
 
     def test_scan_codebase_exclude_patterns(self, mock_file_system, mock_env_var_content):
         with patch("builtins.open", side_effect=mock_env_var_content):
-            with patch("ast.parse"), patch("catalog.scan.EnvVarVisitor") as mock_visitor_class:
+            with patch("ast.parse"), patch("envhero.catalog.scan.EnvVarVisitor") as mock_visitor_class:
                 # Mock visitor instances for each file
                 mock_visitor = MagicMock()
                 mock_visitor.env_vars = [

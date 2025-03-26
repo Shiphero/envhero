@@ -4,12 +4,12 @@ import os
 import sys
 from typing import Any, Dict, List, Optional, Union
 
-from catalog.from_aws_task_definition import get_task_definition_checker
-from catalog.from_env import exists_in_env
-from catalog.scan import scan_codebase
-from environment.verify import check_environment_variables
-from catalog.catalog import add_tags_to_present_vars, filter_vars_by_tag, load_catalog, save_catalog
-from utils.inject_proxy import transform_directory, default_formatter
+from envhero.catalog.from_aws_task_definition import get_task_definition_checker
+from envhero.catalog.from_env import exists_in_env
+from envhero.catalog.scan import scan_codebase
+from envhero.environment.verify import check_environment_variables
+from envhero.catalog.catalog import add_tags_to_present_vars, filter_vars_by_tag, load_catalog, save_catalog
+from envhero.utils.inject_proxy import transform_directory, default_formatter
 
 VERIFY_EPILOG = """
 Sample output:

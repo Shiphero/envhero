@@ -2,8 +2,8 @@ import os
 import json
 import pytest
 from unittest.mock import patch, mock_open
-from catalog.catalog import load_catalog, filter_vars_by_tag, save_catalog, add_tags_to_present_vars
-from catalog.from_env import exists_in_env
+from envhero.catalog.catalog import load_catalog, filter_vars_by_tag, save_catalog, add_tags_to_present_vars
+from envhero.catalog.from_env import exists_in_env
 
 # Test data
 SAMPLE_CATALOG = [
