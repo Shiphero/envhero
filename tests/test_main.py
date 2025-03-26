@@ -1,11 +1,11 @@
 import json
-from unittest.mock import patch, mock_open
+from unittest.mock import ANY, patch, mock_open
 
-from app import create_env_var_catalogue, update_env_var_catalogue, check_env_vars, print_structured, main
+from envhero.app.app import create_env_var_catalogue, update_env_var_catalogue, check_env_vars, print_structured, main
 
 
 class TestCreateEnvVarCatalogue:
-    @patch("app.scan_codebase")
+    @patch("envhero.app.app.scan_codebase")
     @patch("builtins.open", new_callable=mock_open)
     @patch("json.dump")
     def test_create_env_var_catalogue(self, mock_json_dump, mock_file, mock_scan_codebase):
@@ -23,13 +23,13 @@ class TestCreateEnvVarCatalogue:
         # Call the function
         create_env_var_catalogue(
             output_file="catalog.json",
-            exclude_dirs=["venv", "__pycache__"],
+            exclude_dirs=["venv", "__pycache__", ".local", ".venv"],
             exclude_patterns=["*.pyc"],
             no_auto_tag=False,
         )
 
         # Verify scan_codebase was called with the correct arguments
-        mock_scan_codebase.assert_called_once_with(".", ["venv", "__pycache__"], ["*.pyc"], False)
+        mock_scan_codebase.assert_called_once_with("..", ["venv", "__pycache__", ".local", ".venv"], ["*.pyc"], False)
 
         # Verify the file was opened for writing
         mock_file.assert_called_once_with("catalog.json", "w", encoding="utf-8")
@@ -44,8 +44,8 @@ class TestCreateEnvVarCatalogue:
 
 
 class TestUpdateEnvVarCatalogue:
-    @patch("app.scan_codebase")
-    @patch("app.load_catalog")
+    @patch("envhero.app.app.scan_codebase")
+    @patch("envhero.app.app.load_catalog")
     @patch("builtins.open", new_callable=mock_open)
     @patch("json.dump")
     @patch("os.path.exists")
@@ -100,11 +100,11 @@ class TestUpdateEnvVarCatalogue:
 
 
 class TestCheckEnvVars:
-    @patch("app.scan_codebase")
+    @patch("envhero.app.app.scan_codebase")
     @patch("builtins.open")
     @patch("json.load")
     @patch("builtins.print")
-    @patch("app.print_structured")
+    @patch("envhero.app.app.print_structured")
     def test_check_env_vars_missing_vars(
         self, mock_print_structured, mock_print, mock_json_load, mock_open, mock_scan_codebase
     ):
@@ -150,7 +150,7 @@ class TestCheckEnvVars:
 
 
 class TestMain:
-    @patch("app.create_env_var_catalogue")
+    @patch("envhero.app.app.create_env_var_catalogue")
     def test_main_create(self, mock_create):
         with patch("sys.argv", ["app.py", "create", "-o", "test.json"]):
             main()
@@ -161,7 +161,7 @@ class TestMain:
                 no_auto_tag=False,
             )
 
-    @patch("app.update_env_var_catalogue")
+    @patch("envhero.app.app.update_env_var_catalogue")
     def test_main_update(self, mock_update):
         with patch("sys.argv", ["app.py", "update", "-o", "test.json"]):
             main()
@@ -172,7 +172,7 @@ class TestMain:
                 no_auto_tag=False,
             )
 
-    @patch("app.check_env_vars")
+    @patch("envhero.app.app.check_env_vars")
     def test_main_check(self, mock_check):
         with patch("sys.argv", ["app.py", "check", "-c", "test.json", "--structured-output"]):
             main()
@@ -184,9 +184,9 @@ class TestMain:
                 no_auto_tag=False,
             )
 
-    @patch("app.load_catalog")
-    @patch("app.filter_vars_by_tag")
-    @patch("app.check_environment_variables")
+    @patch("envhero.app.app.load_catalog")
+    @patch("envhero.app.app.filter_vars_by_tag")
+    @patch("envhero.app.app.check_environment_variables")
     @patch("sys.exit")
     def test_main_verify(self, mock_exit, mock_check_env, mock_filter, mock_load):
         catalog_data = [{"name": "API_VAR", "tags": ["api"]}, {"name": "DB_VAR", "tags": ["db"]}]
@@ -200,13 +200,15 @@ class TestMain:
             mock_load.assert_called_once_with("test.json")
             mock_filter.assert_called_once_with(catalog_data, ["api"])
             mock_check_env.assert_called_once_with(
-                catalog_vars=[{"name": "API_VAR", "tags": ["api"]}], warning_as_error=False
+                catalog_vars=[{"name": "API_VAR", "tags": ["api"]}],
+                warning_as_error=False,
+                environ_exists=ANY,
             )
             mock_exit.assert_called_once_with(0)  # All checks passed
 
-    @patch("app.load_catalog")
-    @patch("app.add_tags_to_present_vars")
-    @patch("app.save_catalog")
+    @patch("envhero.app.app.load_catalog")
+    @patch("envhero.app.app.add_tags_to_present_vars")
+    @patch("envhero.app.app.save_catalog")
     def test_main_tags_from_env(self, mock_save, mock_add_tags, mock_load):
         catalog_data = [{"name": "TEST_VAR1", "tags": []}, {"name": "TEST_VAR2", "tags": ["existing"]}]
         mock_load.return_value = catalog_data
@@ -218,8 +220,11 @@ class TestMain:
             main()
 
             mock_load.assert_called_once_with("test.json")
-            mock_add_tags.assert_called_once_with(catalog_data, ["prod"])
-            mock_save.assert_called_once_with("test.json")
+            mock_add_tags.assert_called_once_with(catalog_data, ["prod"], ANY)
+            mock_save.assert_called_once_with(
+                [{"name": "TEST_VAR1", "tags": ["prod"]}, {"name": "TEST_VAR2", "tags": ["existing", "prod"]}],
+                "test.json",
+            )
 
 
 class TestPrintStructured:

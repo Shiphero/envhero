@@ -1,0 +1,578 @@
+[
+  {
+    "default_value": "",
+    "has_default": true,
+    "inferred_type": "str",
+    "locations": [
+      {
+        "file": ".venv/bin/activate_this.py",
+        "line": 47
+      },
+      {
+        "file": ".venv/lib/python3.12/site-packages/ruff/__main__.py",
+        "line": 44
+      }
+    ],
+    "name": "PATH",
+    "packages": [
+      "python3.12",
+      "bin"
+    ],
+    "tags": [
+      ".venv",
+      "prod"
+    ]
+  },
+  {
+    "default_value": "",
+    "has_default": true,
+    "inferred_type": "str",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/pygments/cmdline.py",
+        "line": 448
+      }
+    ],
+    "name": "COLORTERM",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": "",
+    "has_default": true,
+    "inferred_type": "str",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/pygments/cmdline.py",
+        "line": 450
+      }
+    ],
+    "name": "TERM",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/pygments/formatters/img.py",
+        "line": 131
+      }
+    ],
+    "name": "HOME",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv",
+      "prod"
+    ]
+  },
+  {
+    "default_value": "false",
+    "has_default": true,
+    "inferred_type": "str",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/compat.py",
+        "line": 293
+      }
+    ],
+    "name": "BOTO_DISABLE_CRT",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/useragent.py",
+        "line": 304
+      },
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/session.py",
+        "line": 567
+      },
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/session.py",
+        "line": 568
+      },
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/configprovider.py",
+        "line": 610
+      }
+    ],
+    "name": "AWS_EXECUTION_ENV",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/handlers.py",
+        "line": 110
+      }
+    ],
+    "name": "_X_AMZN_TRACE_ID",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": false,
+    "has_default": true,
+    "inferred_type": "bool",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/handlers.py",
+        "line": 361
+      }
+    ],
+    "name": "BOTO_EXPERIMENTAL__NO_EMPTY_CONTINUE",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": true,
+    "has_default": true,
+    "inferred_type": "bool",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/endpoint.py",
+        "line": 449
+      }
+    ],
+    "name": "REQUESTS_CA_BUNDLE",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/configprovider.py",
+        "line": 611
+      }
+    ],
+    "name": "AWS_DEFAULT_REGION",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": "<non-constant>",
+    "has_default": true,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/configprovider.py",
+        "line": 612
+      }
+    ],
+    "name": "AWS_REGION",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/httpsession.py",
+        "line": 175
+      },
+      {
+        "file": ".venv/lib/python3.12/site-packages/urllib3/util/ssl_.py",
+        "line": 357
+      }
+    ],
+    "name": "SSLKEYLOGFILE",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": "",
+    "has_default": true,
+    "inferred_type": "str",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/botocore/httpsession.py",
+        "line": 454
+      }
+    ],
+    "name": "BOTO_EXPERIMENTAL__ADD_PROXY_HOST_HEADER",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/rich/console.py",
+        "line": 527
+      }
+    ],
+    "name": "DATABRICKS_RUNTIME_VERSION",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": "",
+    "has_default": true,
+    "inferred_type": "str",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/urllib3/contrib/_appengine_environ.py",
+        "line": 23
+      },
+      {
+        "file": ".venv/lib/python3.12/site-packages/urllib3/contrib/_appengine_environ.py",
+        "line": 29
+      }
+    ],
+    "name": "SERVER_SOFTWARE",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/tmpdir.py",
+        "line": 156
+      }
+    ],
+    "name": "PYTEST_DEBUG_TEMPROOT",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/_argcomplete.py",
+        "line": 102
+      }
+    ],
+    "name": "_ARGCOMPLETE",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": "",
+    "has_default": true,
+    "inferred_type": "str",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/pathlib.py",
+        "line": 593
+      }
+    ],
+    "name": "PY_IGNORE_IMPORTMISMATCH",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/config/__init__.py",
+        "line": 152
+      }
+    ],
+    "name": "PYTEST_VERSION",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv",
+      "prod"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/config/__init__.py",
+        "line": 431
+      }
+    ],
+    "name": "PYTEST_DEBUG",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/config/__init__.py",
+        "line": 820
+      }
+    ],
+    "name": "PYTEST_PLUGINS",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/config/__init__.py",
+        "line": 1286
+      },
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/config/__init__.py",
+        "line": 1378
+      }
+    ],
+    "name": "PYTEST_DISABLE_PLUGIN_AUTOLOAD",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": "",
+    "has_default": true,
+    "inferred_type": "str",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/config/__init__.py",
+        "line": 1360
+      }
+    ],
+    "name": "PYTEST_ADDOPTS",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/_io/terminalwriter.py",
+        "line": 37
+      },
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/_io/terminalwriter.py",
+        "line": 39
+      }
+    ],
+    "name": "PY_COLORS",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/_io/terminalwriter.py",
+        "line": 41
+      }
+    ],
+    "name": "NO_COLOR",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/_io/terminalwriter.py",
+        "line": 43
+      }
+    ],
+    "name": "FORCE_COLOR",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/_io/terminalwriter.py",
+        "line": 46
+      }
+    ],
+    "name": "TERM",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/_io/terminalwriter.py",
+        "line": 227
+      }
+    ],
+    "name": "PYTEST_THEME",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": "dark",
+    "has_default": true,
+    "inferred_type": "str",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/_io/terminalwriter.py",
+        "line": 228
+      }
+    ],
+    "name": "PYTEST_THEME_MODE",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  },
+  {
+    "default_value": null,
+    "has_default": false,
+    "inferred_type": "",
+    "locations": [
+      {
+        "file": ".venv/lib/python3.12/site-packages/_pytest/_py/path.py",
+        "line": 1137
+      }
+    ],
+    "name": "PY_IGNORE_IMPORTMISMATCH",
+    "packages": [
+      "python3.12"
+    ],
+    "tags": [
+      ".venv"
+    ]
+  }
+]

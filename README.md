@@ -41,7 +41,7 @@ https://github.com/femitubosun/EnvGuardian
 ### Scanning
 
 ```python
-from envhero import scan_codebase, print_structured
+from envhero.catalog import scan_codebase, print_structured
 
 # Scan for environment variables in your codebase
 vars_dict, total_found = scan_codebase(
@@ -58,8 +58,8 @@ print_structured(vars_dict.values())
 ### Guarding
 
 ```python
-from envhero import load_catalog, filter_vars_by_tag, must_pass_check
-from envhero import RequiredVariableMissingError, DefaultUsedAsErrorError
+from envhero.catalog import load_catalog, filter_vars_by_tag
+from envhero.environment import RequiredVariableMissingError, DefaultUsedAsErrorError, must_pass_check
 
 try:
     # Load your environment variable catalog
@@ -83,10 +83,16 @@ except DefaultUsedAsErrorError as e:
 ```
 
 ## As a Tool
-For easy use, create an alias. Here is an example for bashrc
+For ease of use, install this in a virtualenv
 
 ```bash
-echo "alias envhero=\"\$(pwd)/main.py\"" >> ~/.bashrc && source ~/.bashrc
+pip install envhero
+```
+
+this will create the envhero executable or alternatively allow you to do
+
+```bash
+python -m envhero 
 ```
 
 ### Creating a Catalog

@@ -93,7 +93,7 @@ class EnvVarVisitor(ast.NodeVisitor):
 
                 # Try to infer type from default value
                 if isinstance(node.args[1], ast.Constant) and default_value is not None:
-                    nferred_type = type(default_value).__name__
+                    inferred_type = type(default_value).__name__
 
             # Try to infer type from assignment context
             parent = getattr(self, "current_parent", None)

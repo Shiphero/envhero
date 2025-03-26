@@ -9,9 +9,10 @@ requires-python = ">=3.8"
 dependencies = [
     "ruff",
     "rich",
+    "boto3",
 ]
 authors = [
-    {name = "Horacio Duran", email = "horacio.duran@shiphero.com"}
+    { name = "Horacio Duran", email = "horacio.duran@shiphero.com" }
 ]
 dynamic = ["version", "description"]
 
@@ -19,11 +20,10 @@ dynamic = ["version", "description"]
 Home = "https://github.com/shiphero/envhero"
 
 [project.scripts]
-envhero = "envhero:main"
+envhero = "envhero:app.main"
 
 [tool.ruff]
 line-length = 120
-
 
 [dependency-groups]
 dev = [

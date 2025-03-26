@@ -2,8 +2,8 @@ import os
 import pytest
 from unittest.mock import patch
 
-from catalog.from_env import exists_in_env
-from environment.verify import (
+from envhero.catalog.from_env import exists_in_env
+from envhero.environment.verify import (
     must_pass_check,
     EnvironmentVariableError,
     RequiredVariableMissingError,
@@ -30,7 +30,7 @@ class TestMustPassCheck:
         """Test when a required variable is missing"""
         with patch.dict(os.environ, {}, clear=True):
             with pytest.raises(RequiredVariableMissingError) as exc_info:
-                must_pass_check(SAMPLE_CATALOG, warning_as_error=False)
+                must_pass_check(SAMPLE_CATALOG, warning_as_error=False, environ_exists=exists_in_env)
 
             # Verify the exception contains the correct variable name
             assert exc_info.value.var_name == "DATABASE_URL"
