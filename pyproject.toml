@@ -20,7 +20,7 @@ dynamic = ["version", "description"]
 Home = "https://github.com/shiphero/envhero"
 
 [project.scripts]
-envhero = "envhero:envhero"
+envhero = "envhero:app.main"
 
 [tool.ruff]
 line-length = 120
