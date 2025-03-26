@@ -206,7 +206,7 @@ class TestMain:
 
     @patch("app.load_catalog")
     @patch("app.add_tags_to_present_vars")
-    @patch("app.save_catalog")
+    @patch("catalog.save_catalog")
     def test_main_tags_from_env(self, mock_save, mock_add_tags, mock_load):
         catalog_data = [{"name": "TEST_VAR1", "tags": []}, {"name": "TEST_VAR2", "tags": ["existing"]}]
         mock_load.return_value = catalog_data
