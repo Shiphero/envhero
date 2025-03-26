@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch, mock_open
+from unittest.mock import ANY, patch, mock_open
 
 from envhero.app.app import create_env_var_catalogue, update_env_var_catalogue, check_env_vars, print_structured, main
 
@@ -29,7 +29,7 @@ class TestCreateEnvVarCatalogue:
         )
 
         # Verify scan_codebase was called with the correct arguments
-        mock_scan_codebase.assert_called_once_with(".", ["venv", "__pycache__", ".local", ".venv"], ["*.pyc"], False)
+        mock_scan_codebase.assert_called_once_with("..", ["venv", "__pycache__", ".local", ".venv"], ["*.pyc"], False)
 
         # Verify the file was opened for writing
         mock_file.assert_called_once_with("catalog.json", "w", encoding="utf-8")
@@ -200,7 +200,9 @@ class TestMain:
             mock_load.assert_called_once_with("test.json")
             mock_filter.assert_called_once_with(catalog_data, ["api"])
             mock_check_env.assert_called_once_with(
-                catalog_vars=[{"name": "API_VAR", "tags": ["api"]}], warning_as_error=False
+                catalog_vars=[{"name": "API_VAR", "tags": ["api"]}],
+                warning_as_error=False,
+                environ_exists=ANY,
             )
             mock_exit.assert_called_once_with(0)  # All checks passed
 
@@ -218,8 +220,11 @@ class TestMain:
             main()
 
             mock_load.assert_called_once_with("test.json")
-            mock_add_tags.assert_called_once_with(catalog_data, ["prod"])
-            mock_save.assert_called_once_with("test.json")
+            mock_add_tags.assert_called_once_with(catalog_data, ["prod"], ANY)
+            mock_save.assert_called_once_with(
+                [{"name": "TEST_VAR1", "tags": ["prod"]}, {"name": "TEST_VAR2", "tags": ["existing", "prod"]}],
+                "test.json",
+            )
 
 
 class TestPrintStructured:

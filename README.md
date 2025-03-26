@@ -86,7 +86,7 @@ except DefaultUsedAsErrorError as e:
 For easy use, create an alias. Here is an example for bashrc
 
 ```bash
-echo "alias envhero=\"\$(pwd)/envhero.py\"" >> ~/.bashrc && source ~/.bashrc
+echo "alias envhero=\"\$(pwd)/src/envhero/__main__.py\"" >> ~/.bashrc && source ~/.bashrc
 ```
 
 ### Creating a Catalog
