@@ -67,7 +67,8 @@ def get_env_vars_from_task_definition(
         for secret in container.get("secrets", []):
             name = secret.get("name")
             if name:
-                env_vars[name] = len(secret.get("value")) > 0
+                value = secret.get("value")
+                env_vars[name] = bool(value)
 
     return env_vars
 
