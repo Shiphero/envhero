@@ -83,6 +83,11 @@ except DefaultUsedAsErrorError as e:
 ```
 
 ## As a Tool
+For easy use, create an alias. Here is an example for bashrc
+
+```bash
+echo "alias envhero=\"\$(pwd)/main.py\"" >> ~/.bashrc && source ~/.bashrc
+```
 
 ### Creating a Catalog
 
@@ -90,7 +95,10 @@ except DefaultUsedAsErrorError as e:
 envhero create -o env_var_catalog.json --exclude-dir tests --exclude-dir .venv
 ```
 
+<span style="color:red">NOTE</span>: This command generates a complete catalog of environment variables, inferring tags based on the folder where the application is stored. To prevent these tags from being inferred, use `--no-auto-tag`.
+
 Output:
+
 ```
 Scanning codebase for os.environ.get calls...
 Found 15 environment variable usages in 7 files
@@ -240,21 +248,23 @@ Sample output:
 
 #### From a shell
 
+This command scans all environment variables currently present in the shell and assigns the tags `test1` and `test2` to all matching environment variables in the catalog.
+
 ```bash
-envhero tags_from_env -c env_var_catalog.json -t production -t high-memory
+envhero tags_from_env -c env_var_catalog.json -t test1 -t test2
 ```
 
 #### From an AWS task definition file
 
-Pass the path to a definition file.
+Given the path to a task definition file, this command tags with `application-x` the matching variables in the catalog.
 
 ```bash
-envhero tags_from_env -c env_var_catalog.json -d task_definition.json -t production -t high-memory
+envhero tags_from_env -c env_var_catalog.json -d task_definition.json -t application-x
 ```
 
 #### From an AWS task definition
 
-Pass the name of a definition.
+Same as previous but using remote task definitions instead of local files.
 
 ```bash
 export AWS_ACCESS_KEY_ID=xxxxxxx
@@ -263,6 +273,7 @@ export AWS_SESSION_TOKEN=xxxxxxx
 export AWS_DEFAULT_REGION=xxxxxxx #beware boto3 does not support AWS_REGION
 envhero tags_from_env -c env_var_catalog.json -d task_definition_name -t production -t high-memory
 ```
+<span style="color:red">NOTE</span>: If you are an SSO user, bear in mind that this also works perfectly with AWS profiles.
 
 Output:
 ```
